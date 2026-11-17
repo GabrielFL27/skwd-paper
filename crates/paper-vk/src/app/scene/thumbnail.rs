@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, anyhow, ensure};
 use paper_control::{SceneThumbnailRequest, SceneThumbnailResponse};
 
+const MAX_SIDE: u32 = 8192;
 const SIZE: (u32, u32) = (1280, 720);
 const REFERENCE_SIZE: (u32, u32) = (2560, 2560);
 const VIDEO_SECONDS: f64 = 1.0;
@@ -64,7 +65,9 @@ fn capture(
 }
 
 fn capture_size(request: &SceneThumbnailRequest) -> (u32, u32) {
-    if request.reference { REFERENCE_SIZE } else { SIZE }
+    request.size.filter(|(w, h)| *w > 0 && *h > 0 && *w <= MAX_SIDE && *h <= MAX_SIDE).unwrap_or(
+        if request.reference { REFERENCE_SIZE } else { SIZE },
+    )
 }
 
 fn video_source(source: &Path) -> Result<Option<PathBuf>> {
@@ -105,7 +108,11 @@ fn capture_scene(
         &mut model,
         strict,
         &[capture_size(request)],
-        paper_geom::FillMode::Fit,
+        request
+            .fill
+            .as_deref()
+            .and_then(|name| name.parse().ok())
+            .unwrap_or(paper_geom::FillMode::Fit),
     )?;
     drop(model);
     let result = (|| {

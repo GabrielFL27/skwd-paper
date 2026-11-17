@@ -32,6 +32,8 @@ fn request(destination: &Path, reference: bool) -> SceneThumbnailRequest {
         destination: destination.display().to_string(),
         properties: serde_json::Map::default(),
         reference,
+        size: None,
+        fill: None,
     }
 }
 
@@ -90,6 +92,8 @@ fn video_reference_first_frame() {
                 destination: destination.to_string_lossy().into_owned(),
                 properties: serde_json::Map::default(),
                 reference,
+                size: None,
+                fill: None,
             },
         )
         .unwrap();
@@ -124,6 +128,8 @@ fn reference_preserves_large_frame() {
         source: root.path().display().to_string(),
         destination: destination.display().to_string(),
         reference: false,
+        size: None,
+        fill: None,
         properties: serde_json::Map::default(),
     };
     let mut shared = None;
